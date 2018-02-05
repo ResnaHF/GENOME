@@ -70,17 +70,16 @@ public final class Replicon extends Statistics {
 	 */
 	protected void computeStatistic() {
 		int idx,length;
-		long total = 0;
 		for( StringBuffer sequence : m_sequences) {
 			idx = 0;
 			length = sequence.length();
 			while(length-idx > 5){
-				incrementStat(Trinucleotide.valueOf(sequence.substring(idx,idx+3)),Stat.PHASE0);
-				incrementStat(Trinucleotide.valueOf(sequence.substring(idx+1,idx+4)),Stat.PHASE1);
-				incrementStat(Trinucleotide.valueOf(sequence.substring(idx+2,idx+5)),Stat.PHASE2);
+				incrementStat(Trinucleotide.valueOf(sequence.substring(idx,idx+3)), StatLong.PHASE0);
+				incrementStat(Trinucleotide.valueOf(sequence.substring(idx+1,idx+4)), StatLong.PHASE1);
+				incrementStat(Trinucleotide.valueOf(sequence.substring(idx+2,idx+5)), StatLong.PHASE2);
                    idx+=3;
 			}
-			m_totalTrinucleotide += idx/3;
+			incrementTotal(idx/3);
 		}
 		super.compute();
 	}

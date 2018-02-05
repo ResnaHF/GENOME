@@ -92,6 +92,10 @@ public class IDataBase {
         m_genomeNumber.merge(_type, _incr, (v1,v2) -> v1 + v2);
     }
 
+    /**
+     * Create statistic if it's not exist and update it
+     * @param _statistics, the statistic to used for update
+     */
     protected void updateStatistics(Statistics _statistics){
         if(m_statistics.get(_statistics.getType()) == null){
             m_statistics.put(_statistics.getType(), new Statistics(_statistics.getType()));
@@ -99,6 +103,9 @@ public class IDataBase {
         m_statistics.get(_statistics.getType()).update(_statistics);
     }
 
+    /**
+     * Compute statistics
+     */
     protected void computeStatistics(){
         m_statistics.values().parallelStream().forEach(Statistics::compute);
     }

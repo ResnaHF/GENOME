@@ -114,7 +114,9 @@ public class IState extends IDataBase{
             if(_arr.get(_stat.getIndex()) != null) {
                 return true;
             }
-        }catch (IndexOutOfBoundsException e){}
+        }catch (IndexOutOfBoundsException e){
+            return false;
+        }
         return false;
     }
 
@@ -127,7 +129,7 @@ public class IState extends IDataBase{
 
     /**
      * Get the number of finish children
-     * @return
+     * @return the number of children finished
      */
     protected int getFinishedChildrens(){
         return m_finished;
