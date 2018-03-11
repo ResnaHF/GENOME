@@ -15,7 +15,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 public final class GenbankOrganisms extends IDownloader {
@@ -45,10 +44,6 @@ public final class GenbankOrganisms extends IDownloader {
      */
     private final LinkedList<OrganismParser> m_dataQueue;
     /**
-     * Queue of failed chunk's indexes
-     */
-    private final ArrayList<Integer> m_failedChunks;
-    /**
      * Currently downloaded
      */
     private int m_downloaded;
@@ -74,7 +69,6 @@ public final class GenbankOrganisms extends IDownloader {
         m_enqueued = 0;
         m_failedOrganism = 0;
         m_dataQueue = new LinkedList<>();
-        m_failedChunks = new ArrayList<>();
     }
 
     /**
@@ -135,7 +129,7 @@ public final class GenbankOrganisms extends IDownloader {
             return;
         }
 
-        int chunkLength = 0;
+        int chunkLength;
         try {
             chunkLength = downloadChunk(m_downloaded);
         } catch (Exception e) {
@@ -143,7 +137,6 @@ public final class GenbankOrganisms extends IDownloader {
                 Logs.warning("Unable to find the total number of organism");
                 throw new MissException("Unable to find the total number of organism");
             } else {
-                m_failedChunks.add(m_downloaded);
                 m_downloaded += Options.getDownloadStep();
                 m_failedOrganism += Options.getDownloadStep();
             }
@@ -264,15 +257,6 @@ public final class GenbankOrganisms extends IDownloader {
             }
         }
         disconnect();
-    }
-
-    /**
-     * Returns true if there is failed chunk
-     *
-     * @return if there is failed chunk
-     */
-    public boolean hasFailedChunk() {
-        return m_failedChunks.size() > 0;
     }
 
     /**
