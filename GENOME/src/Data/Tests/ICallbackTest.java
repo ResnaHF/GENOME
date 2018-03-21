@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ICallbackTest {
 
     @Test
-    public void stopFinishTest() throws InvalidStateException, AddException {
+    public void stopFinish() throws InvalidStateException, AddException {
 
         final ArrayList<Boolean> check = new ArrayList<>();
         check.add(false);
@@ -81,7 +81,7 @@ public class ICallbackTest {
     }
 
     @Test
-    public void finishStopTest() throws InvalidStateException, AddException {
+    public void finishStop() throws InvalidStateException, AddException {
 
         final ArrayList<Boolean> check = new ArrayList<>();
         check.add(false);

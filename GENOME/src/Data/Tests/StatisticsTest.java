@@ -9,98 +9,104 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StatisticsTest {
 
-    private static void printTriTable(Statistics _stat) {
-        System.out.print("TRI\tPhase0\tFreq0\tPhase1\tFreq1\tPhase2\tFreq2\tPref0\tPref1\tPref2\t");
-        for (Statistics.Trinucleotide tri : Statistics.Trinucleotide.values()) {
-            Tuple row = _stat.getTable()[tri.ordinal()];
-            System.out.print("\n" + tri + "\t");
-            System.out.print(row.get(Statistics.StatLong.PHASE0) + "\t");
-            System.out.print(String.format("%.4f\t", row.get(Statistics.StatFloat.FREQ0)));
-            System.out.print(row.get(Statistics.StatLong.PHASE1) + "\t");
-            System.out.print(String.format("%.4f\t", row.get(Statistics.StatFloat.FREQ1)));
-            System.out.print(row.get(Statistics.StatLong.PHASE2) + "\t");
-            System.out.print(String.format("%.4f\t", row.get(Statistics.StatFloat.FREQ2)));
-            System.out.print(row.get(Statistics.StatLong.PREF0) + "\t");
-            System.out.print(row.get(Statistics.StatLong.PREF1) + "\t");
-            System.out.print(row.get(Statistics.StatLong.PREF2) + "\t");
+    private static long global(IDataBase _dataBase) {
+        for (Statistics stat : _dataBase.getStatistics().values()) {
+            long totalPhase0 = 0L;
+            long totalPhase1 = 0L;
+            long totalPhase2 = 0L;
+            float totalFreq0 = 0.0F;
+            float totalFreq1 = 0.0F;
+            float totalFreq2 = 0.0F;
+            for (Tuple en : stat.getTable()) {
+                totalPhase0 += en.get(Statistics.StatLong.PHASE0);
+                totalPhase1 += en.get(Statistics.StatLong.PHASE1);
+                totalPhase2 += en.get(Statistics.StatLong.PHASE2);
+                totalFreq0 += en.get(Statistics.StatFloat.FREQ0);
+                totalFreq1 += en.get(Statistics.StatFloat.FREQ1);
+                totalFreq2 += en.get(Statistics.StatFloat.FREQ2);
+            }
+            assertEquals(1.0F, totalFreq0, 0.000001F);
+            assertEquals(1.0F, totalFreq1, 0.000001F);
+            assertEquals(1.0F, totalFreq2, 0.000001F);
+            assertEquals(totalPhase0, stat.getTotalTrinucleotide());
+            assertEquals(totalPhase1, stat.getTotalTrinucleotide());
+            assertEquals(totalPhase2, stat.getTotalTrinucleotide());
         }
+        EnumMap<Statistics.Type, Long> genNumb = _dataBase.getGenomeNumber();
+        long totalGenome = 0L;
+        for (Statistics.Type t : genNumb.keySet()) {
+            totalGenome += genNumb.get(t);
+        }
+        return totalGenome;
+    }
 
-        System.out.println("\nTOTAL\t" + _stat.getTotalTrinucleotide() + "\t\t"
-                + _stat.getTotalTrinucleotide() + "\t\t"
-                + _stat.getTotalTrinucleotide() + "\n");
+    private static long globalDat(IDataBase _dataBase, ArrayList<? extends IDataBase> _child) {
+        long total = 0L;
+        long totalValid = 0L;
+        long totalOrganism = 0L;
+        for (IDataBase child : _child) {
+            total += child.getCDSNumber();
+            totalValid += child.getValidCDSNumber();
+            totalOrganism += child.getTotalOrganism();
+        }
+        assertEquals(total, _dataBase.getCDSNumber());
+        assertEquals(totalValid, _dataBase.getValidCDSNumber());
+        assertEquals(totalOrganism, _dataBase.getTotalOrganism());
+        assertTrue(_dataBase.getCDSNumber() == _dataBase.getValidCDSNumber() * 2);
+        return global(_dataBase);
+    }
+
+    private static long globalRep(IDataBase _dataBase, ArrayList<Replicon> _child) {
+        long total = 0L;
+        long totalValid = 0L;
+        for (Replicon child : _child) {
+            total += child.getCDSNumber();
+            totalValid += child.getValidCDSNumber();
+        }
+        assertEquals(total, _dataBase.getCDSNumber());
+        assertEquals(totalValid, _dataBase.getValidCDSNumber());
+        assertEquals(1, _dataBase.getTotalOrganism());
+        assertTrue(_dataBase.getCDSNumber() == _dataBase.getValidCDSNumber() * 2);
+        return global(_dataBase);
     }
 
     @Test
-    void statisticsTest() throws AddException, InvalidStateException {
+    void statistics() throws AddException, InvalidStateException {
         final int nb = 5, nbrep = 200;
         DataBase db = new DataBase("DataBase", _dataBase -> {
-            for (Statistics stat : _dataBase.getStatistics().values()) {
-                long totalPhase0 = 0L;
-                long totalPhase1 = 0L;
-                long totalPhase2 = 0L;
-                float totalFreq0 = 0.0F;
-                float totalFreq1 = 0.0F;
-                float totalFreq2 = 0.0F;
-                for (Tuple en : stat.getTable()) {
-                    totalPhase0 += en.get(Statistics.StatLong.PHASE0);
-                    totalPhase1 += en.get(Statistics.StatLong.PHASE1);
-                    totalPhase2 += en.get(Statistics.StatLong.PHASE2);
-                    totalFreq0 += en.get(Statistics.StatFloat.FREQ0);
-                    totalFreq1 += en.get(Statistics.StatFloat.FREQ1);
-                    totalFreq2 += en.get(Statistics.StatFloat.FREQ2);
-                }
-                assertEquals(1.0F, totalFreq0, 0.000001F);
-                assertEquals(1.0F, totalFreq1, 0.000001F);
-                assertEquals(1.0F, totalFreq2, 0.000001F);
-                assertEquals(totalPhase0, stat.getTotalTrinucleotide());
-                assertEquals(totalPhase1, stat.getTotalTrinucleotide());
-                assertEquals(totalPhase2, stat.getTotalTrinucleotide());
-                printTriTable(stat);
-            }
-
-            long total = 0L;
-            long totalValid = 0L;
-            long totalOrganism = 0L;
-            for (Kingdom child : _dataBase.getKingdoms()) {
-                total += child.getCDSNumber();
-                totalValid += child.getValidCDSNumber();
-                totalOrganism += child.getTotalOrganism();
-            }
             assertEquals(nb * nb * nb * nb, _dataBase.getTotalOrganism());
-            assertEquals(total, _dataBase.getCDSNumber());
-            assertEquals(totalValid, _dataBase.getValidCDSNumber());
-            assertEquals(totalOrganism, _dataBase.getTotalOrganism());
-            EnumMap<Statistics.Type, Long> genNumb = _dataBase.getGenomeNumber();
-            long totalGenome = 0L;
-            for (Statistics.Type t : Statistics.Type.values()) {
-                if (genNumb.get(t) != null) {
-                    System.out.println(t + " : " + genNumb.get(t));
-                    totalGenome += genNumb.get(t);
-                }
-            }
-            assertEquals((long) (nb * nb * nb * nb * nbrep), totalGenome);
+            assertEquals((long) (nb * nb * nb * nb * nbrep), globalDat(_dataBase, _dataBase.getKingdoms()));
         });
         db.start();
         for (int k = 0; k < nb; ++k) {
             Kingdom ki = new Kingdom("Kingdom_" + k, _kingdom -> {
+                assertEquals(nb * nb * nb, _kingdom.getTotalOrganism());
+                assertEquals((long) (nb * nb * nb * nbrep), globalDat(_kingdom, _kingdom.getGroups()));
             });
             ki.start();
             db.addKingdom(ki);
             for (int g = 0; g < nb; ++g) {
                 Group gr = new Group("Group_" + g, _group -> {
+                    assertEquals(nb * nb, _group.getTotalOrganism());
+                    assertEquals((long) (nb * nb * nbrep), globalDat(_group, _group.getSubGroups()));
                 });
                 gr.start();
                 ki.addGroup(gr);
                 for (int s = 0; s < nb; ++s) {
                     SubGroup su = new SubGroup("SubGroup" + s, _subGroup -> {
+                        assertEquals(nb, _subGroup.getTotalOrganism());
+                        assertEquals((long) (nb * nbrep), globalDat(_subGroup, _subGroup.getOrganisms()));
                     });
                     su.start();
                     gr.addSubGroup(su);
                     for (int o = 0; o < nb; ++o) {
                         Organism or = new Organism("'Brassica napus' phytoplasma", 152753L, 1592820474201505800L, _organism -> {
+                            assertEquals(1, _organism.getTotalOrganism());
+                            assertEquals((long) (nbrep), globalRep(_organism, _organism.getReplicons()));
                         });
                         or.start();
                         su.addOrganism(or);

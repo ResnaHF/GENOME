@@ -2,16 +2,17 @@ package Data.Tests;
 
 import Data.IDataBase;
 import Exception.InvalidStateException;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class StateTest {
 
-    @org.junit.jupiter.api.Test
-    void stateTest() throws InvalidStateException {
+    @Test
+    void state() throws InvalidStateException {
 
-        IStateTest db = new IStateTest();
+        State db = new State();
 
         assertEquals(IDataBase.State.CREATED, db.getState());
 
@@ -38,8 +39,8 @@ class StateTest {
         assertThrows(InvalidStateException.class, db::finish);
     }
 
-    private final class IStateTest extends IDataBase {
-        IStateTest() {
+    private final class State extends IDataBase {
+        State() {
             super("TEST");
         }
 
