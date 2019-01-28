@@ -1,14 +1,18 @@
 package Main;
 
 import Data.IDataBase;
+import Data.Organism;
+import Excel.ExcelWriter;
 import GUI.MainFrame;
 import GUI.WarningFrame;
+import RMI.IServerRemote;
 import Utils.Logs;
 import Utils.Options;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.rmi.Naming;
 
 final class GENOME {
 
@@ -18,6 +22,27 @@ final class GENOME {
      * @param args args
      */
     public static void main(String[] args) {
+
+        try {
+            IServerRemote stub = (IServerRemote) Naming.lookup("rmi://localhost:20042/Server");
+            IDataBase data = stub.recup("D_Genbank--K_archaea--G_euryarchaeota--SG_archaeoglobi--O_archaeoglobus_sulfaticallidus_pm70_1-12088");
+            if (data == null){
+                System.out.println("t'es null !");
+            }
+            else
+            {
+                System.out.println(data.getName());
+                System.out.println(data.getCDSNumber());
+                System.out.println(data.getValidCDSNumber());
+                System.out.println(data.getState());
+                System.out.println(data.getTotalOrganism());
+                System.out.println(data.getGenomeNumber());
+            }
+            ExcelWriter.writeOrganism((Organism)data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
         if (lock()) {
             try {
                 Logs.setListener((_message, _type) -> {

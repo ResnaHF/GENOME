@@ -7,7 +7,7 @@ public final class Replicon extends Statistics {
     /**
      * The name
      */
-    private transient final String m_NAME;
+    private final String m_NAME;
     /**
      * Array of all the sequences of this Replicon
      */

@@ -18,7 +18,7 @@ public final class Organism extends IDataBase {
     /**
      * Array of this organism's Replicon
      */
-    private transient final ArrayList<Replicon> m_REPLICONS;
+    private final ArrayList<Replicon> m_REPLICONS;
     /**
      * The id of this organism
      */
