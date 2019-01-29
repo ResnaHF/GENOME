@@ -1,46 +1,14 @@
 package Main;
 
 import Console.Console;
-import Data.IDataBase;
-import RMI.IServerRemote;
+import RMI.ServerRemote;
 import Utils.Logs;
 import Utils.Options;
 
 import java.io.File;
 import java.io.IOException;
 
-import java.rmi.Naming;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
-
-final class GENOME_RMI_SERVER extends UnicastRemoteObject implements IServerRemote {
-
-    public GENOME_RMI_SERVER() throws RemoteException{
-        super();
-    }
-
-    public void test(String message) throws RemoteException{
-        System.out.println("message reçu : " + message);
-    }
-
-    public IDataBase recup(String name) throws RemoteException{
-        IDataBase data = IDataBase.load(name);
-        if (data == null){
-            System.out.println("t'es null !");
-        }
-        else
-        {
-            System.out.println(data.getName());
-            System.out.println(data.getCDSNumber());
-            System.out.println(data.getValidCDSNumber());
-            System.out.println(data.getState());
-            System.out.println(data.getTotalOrganism());
-            System.out.println(data.getGenomeNumber());
-        }
-        return data;
-    }
+final class GENOME_RMI_SERVER {
 
     /**
      * Main
@@ -50,17 +18,6 @@ final class GENOME_RMI_SERVER extends UnicastRemoteObject implements IServerRemo
     public static void main(String[] args) {
         // if (lock()) {
             try {
-
-                System.out.println("objLocal en préparation") ;
-                Registry test = LocateRegistry.createRegistry(20042); //start serveur
-                GENOME_RMI_SERVER objLocal = new GENOME_RMI_SERVER();
-                Naming.rebind("rmi://localhost:20042/Server",objLocal);  //on publie la ref de l'objet bean
-                System.out.println("objLocal pret") ;
-
-                //   System.setProperty("java.rmi.server.hostname","127.0.0.1");
-                // Registry registry = LocateRegistry.createRegistry(42012);
-                //registry.rebind( "rmi://"+"127.0.0.1"+":"+42012+"/SERVER" ,objLocal) ;
-
                 Logs.setListener((_message, _type) -> {
                     switch (_type) {
                         case EXCEPTION:
@@ -77,13 +34,14 @@ final class GENOME_RMI_SERVER extends UnicastRemoteObject implements IServerRemo
                 Console.getSingleton().addStopListener(GenomeRMIServerActivity::stop);
                 Console.getSingleton().addPauseListener(GenomeRMIServerActivity::pause);
                 Console.getSingleton().addResumeListener(GenomeRMIServerActivity::resume);
+                ServerRemote.startServerRemote();
                 Console.getSingleton().run();
-                Naming.unbind("rmi://localhost:20042/Server");
-                System.exit(0);
+                ServerRemote.stopServerRemote();
             } catch (Throwable e) {
                 Logs.exception(e);
                 e.printStackTrace();
             }
+        //}
     }
 
     /**

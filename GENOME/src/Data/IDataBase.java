@@ -1,10 +1,12 @@
 package Data;
 
 import Exception.InvalidStateException;
+import RMI.ClientRemote;
 import Utils.Logs;
 import Utils.Options;
 
 import java.io.*;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
@@ -104,25 +106,35 @@ public class IDataBase implements Serializable {
      * @return the IDatabase loaded
      */
     public static IDataBase load(String _name) {
-        final File file = new File(Options.getSerializeDirectory() + File.separator + _name + Options.getSerializeExtension());
-        ObjectInputStream stream = null;
         IDataBase result = null;
-        if (!file.exists()) {
-            return null;
-        }
-        try {
-            stream = new ObjectInputStream((new FileInputStream(file)));
-            result = (IDataBase) stream.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            Logs.warning("Unable to load : " + _name);
-            Logs.exception(e);
-        } finally {
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                    Logs.warning("Unable to close : " + _name);
-                    Logs.exception(e);
+        if(ClientRemote.getServerRemote() != null){
+            try {
+                result = ClientRemote.getServerRemote().recup("D_Genbank--K_archaea--G_euryarchaeota--SG_archaeoglobi--O_archaeoglobus_sulfaticallidus_pm70_1-12088");
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }else {
+
+            final File file = new File(Options.getSerializeDirectory() + File.separator + _name + Options.getSerializeExtension());
+            ObjectInputStream stream = null;
+            if (!file.exists()) {
+                return null;
+            }
+            try {
+                stream = new ObjectInputStream((new FileInputStream(file)));
+                result = (IDataBase) stream.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                Logs.warning("Unable to load : " + _name);
+                Logs.exception(e);
+            } finally {
+                if (stream != null) {
+                    try {
+                        stream.close();
+                    } catch (IOException e) {
+                        Logs.warning("Unable to close : " + _name);
+                        Logs.exception(e);
+                    }
                 }
             }
         }
