@@ -115,6 +115,10 @@ public final class Options {
      * The name of the genbank
      */
     private static String s_GENBANK_NAME = "Genbank";
+    /**
+     * The time of each execution of the RMI server (in second)
+     */
+    private static String s_SERVER_LOOP_TIME = "86400";
 
     /**
      * Open the options's file in order to read options and fill the static fields with it
@@ -301,4 +305,9 @@ public final class Options {
     public static String getOrganismSerializationPrefix() {
         return s_ORGANISM_SERIALIZATION_PREFIX;
     }
+
+    public static int getServerLoopTime() {
+        return Integer.parseInt(s_SERVER_LOOP_TIME ) * 1000;
+    }
+
 }

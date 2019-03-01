@@ -24,10 +24,13 @@ final class GenomeRMIServerActivity {
     private static final Lock s_WAIT_LOCK = new ReentrantLock();
     private static final Condition s_COND = s_WAIT_LOCK.newCondition();
     private static final Object s_STOP_LOCK = new Object();
+    private static final Object s_COMPUTE_LOCK = new Object();
     private static final Object s_RUN_LOCK = new Object();
     private static Boolean s_stop = false;
+    private static Boolean s_compute = false;
     private static Boolean s_run = false;
     private static Thread s_activityThread = null;
+    private static Thread s_runThread = null;
     private static boolean s_wait = false;
 
     /**
@@ -36,14 +39,14 @@ final class GenomeRMIServerActivity {
      * @return true if activity is started
      */
     public static boolean genbank() {
-        boolean run = true;
-        synchronized (s_RUN_LOCK) {
-            if (!s_run) {
-                run = false;
-                s_run = true;
+        boolean compute = true;
+        synchronized (s_COMPUTE_LOCK) {
+            if (!s_compute) {
+                compute = false;
+                s_compute = true;
             }
         }
-        if (!run) {
+        if (!compute) {
             Logs.notice("Start", true);
             s_WAIT_LOCK.lock();
             {
@@ -236,8 +239,8 @@ final class GenomeRMIServerActivity {
                 } finally {
                     Logs.notice("Finished and wait for threads...", true);
                     threadManager.finalizeThreadManager(cancel);
-                    synchronized (s_RUN_LOCK) {
-                        s_run = false;
+                    synchronized (s_COMPUTE_LOCK) {
+                        s_compute = false;
                     }
                     Date end = new Date();
                     Logs.notice("Execution time : " + getDifference(beg, end), true);
@@ -251,6 +254,39 @@ final class GenomeRMIServerActivity {
     }
 
     /**
+     * Send run request
+     *
+     * @return if true if success
+     */
+    public static boolean run() {
+        boolean run = true;
+        synchronized (s_RUN_LOCK) {
+            if (!s_run) {
+                run = false;
+                s_run = true;
+            }
+        }
+        if (!run) {
+            s_runThread = new Thread(() -> {
+                boolean res = genbank();
+                if(!res) {
+                    Logs.warning("Unable to launch the main program");
+                }
+                try {
+                    Thread.sleep(Options.getServerLoopTime());
+                } catch (InterruptedException e) {
+                    Logs.warning("Error while sleeping");
+                    Logs.exception(e);
+                }
+            });
+            s_runThread.start();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Send stop request
      *
      * @return if true if success
@@ -258,8 +294,8 @@ final class GenomeRMIServerActivity {
     public static boolean stop() {
         boolean ret = false;
         boolean run = false;
-        synchronized (s_RUN_LOCK) {
-            if (s_run) {
+        synchronized (s_COMPUTE_LOCK) {
+            if (s_compute) {
                 run = true;
             }
         }
@@ -305,8 +341,8 @@ final class GenomeRMIServerActivity {
     public static boolean pause() {
         boolean ret = false;
         boolean run = false;
-        synchronized (s_RUN_LOCK) {
-            if (s_run) {
+        synchronized (s_COMPUTE_LOCK) {
+            if (s_compute) {
                 run = true;
             }
         }
@@ -332,8 +368,8 @@ final class GenomeRMIServerActivity {
     public static boolean resume() {
         boolean ret = false;
         boolean run = false;
-        synchronized (s_RUN_LOCK) {
-            if (s_run) {
+        synchronized (s_COMPUTE_LOCK) {
+            if (s_compute) {
                 run = true;
             }
         }

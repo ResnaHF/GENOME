@@ -9,9 +9,17 @@ import java.io.InputStreamReader;
 public class Console {
 
     /**
+     * Keyword to dislay helper
+     */
+    private static final String s_HELP = "help";
+    /**
      * Keyword to start to activity
      */
     private static final String s_START = "start";
+    /**
+     * Keyword to start to activity
+     */
+    private static final String s_RUN = "run";
     /**
      * Keyword to stop to activity
      */
@@ -41,6 +49,10 @@ public class Console {
     /**
      * Action to launch
      */
+    private Console.ActivityListener m_run = null;
+    /**
+     * Action to launch
+     */
     private Console.ActivityListener m_stop = null;
     /**
      * Action to launch
@@ -50,6 +62,18 @@ public class Console {
      * Action to launch
      */
     private Console.ActivityListener m_resume = null;
+
+    /**
+     * Display the command arguments
+     */
+    private static void displayHelp() {
+        Logs.notice("-help: display this helper", true);
+        Logs.notice("-start: start the program", true);
+        Logs.notice("-run: run the program", true);
+        Logs.notice("-stop: stop the program", true);
+        Logs.notice("-pause: pause the program", true);
+        Logs.notice("-resume: resume the program", true);
+    }
 
     /**
      * Get the singleton
@@ -70,6 +94,15 @@ public class Console {
      */
     public void addStartListener(Console.ActivityListener _activityListener) {
         m_start = _activityListener;
+    }
+
+    /**
+     * Add run action
+     *
+     * @param _activityListener the run action
+     */
+    public void addRunListener(Console.ActivityListener _activityListener) {
+        m_run = _activityListener;
     }
 
     /**
@@ -105,7 +138,9 @@ public class Console {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             while (command.compareTo(s_EXIT) != 0) {
                 command = br.readLine();
-                if (command.compareTo(s_START) == 0) {
+                if (command.compareTo(s_HELP) == 0) {
+                    displayHelp();
+                } else if (command.compareTo(s_START) == 0) {
                     m_start.activityEvent();
                 } else if (command.compareTo(s_STOP) == 0) {
                     m_stop.activityEvent();
@@ -113,6 +148,11 @@ public class Console {
                     m_pause.activityEvent();
                 } else if (command.compareTo(s_RESUME) == 0) {
                     m_resume.activityEvent();
+                } else if (command.compareTo(s_RUN) == 0) {
+                    m_run.activityEvent();
+                } else {
+                    Logs.warning("Unknowns command");
+                    displayHelp();
                 }
             }
         } catch (IOException e) {

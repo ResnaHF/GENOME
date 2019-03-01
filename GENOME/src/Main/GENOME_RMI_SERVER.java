@@ -15,21 +15,22 @@ final class GENOME_RMI_SERVER {
      * @param args args
      */
     public static void main(String[] args) {
+        Logs.setListener((_message, _type) -> {
+            switch (_type) {
+                case EXCEPTION:
+                    System.err.println(_message);
+                    break;
+                default:
+                    System.out.println(_message);
+                    break;
+            }
+        });
         if (lock()) {
             try {
-                Logs.setListener((_message, _type) -> {
-                    switch (_type) {
-                        case EXCEPTION:
-                            System.err.println(_message);
-                            break;
-                        default:
-                            System.out.println(_message);
-                            break;
-                    }
-                });
                 initializeProgram();
                 Runtime.getRuntime().addShutdownHook(new Thread(GENOME_RMI_SERVER::finalizeProgram));
                 Console.getSingleton().addStartListener(GenomeRMIServerActivity::genbank);
+                Console.getSingleton().addRunListener(GenomeRMIServerActivity::run);
                 Console.getSingleton().addStopListener(GenomeRMIServerActivity::stop);
                 Console.getSingleton().addPauseListener(GenomeRMIServerActivity::pause);
                 Console.getSingleton().addResumeListener(GenomeRMIServerActivity::resume);
@@ -37,6 +38,12 @@ final class GENOME_RMI_SERVER {
             } catch (Throwable e) {
                 Logs.exception(e);
             }
+        } else {
+            Logs.initializeLog();
+            Logs.warning("Impossible de relancer le programme.");
+            Logs.warning("- Soit le programme est encore en cours d'exécution et attend la fin des threads.");
+            Logs.warning("- Soit la précédente exécution a été interrompue prématurément. Dans ce cas,veuillez supprimer le fichier  \\\"\" + Options.getMutexFileName() + \"\\\".");
+            Logs.finalizeLog();
         }
     }
 
